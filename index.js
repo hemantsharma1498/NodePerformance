@@ -1,7 +1,7 @@
 //Dependencies
 const cluster=require('cluster');
 
-//Set single thread per threadpool 
+//Set single thread per worker
 process.env.UV_THREADPOOL_SIZE=1;
 
 //Is the file being executed in master mode?
