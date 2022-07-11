@@ -1,47 +1,34 @@
 //Dependencies
-const cluster=require('cluster');
+const express=require('express');
+const app=express();
+const crypto=require('crypto');
+const {Worker}=require('worker_threads');
 
-//Set single thread per worker
-process.env.UV_THREADPOOL_SIZE=1;
 
-//Is the file being executed in master mode?
-if(cluster.isMaster){
 
-    //index.js will be executed again but in child mode (as in else clause)
-    cluster.fork();
-    
 
-}else{
 
-    //Server will run in child mode
+//Basic routing
+app.get('/', function(req, res){
+    
+    //Instantiate the worker object
+    const worker=new Worker('./worker.js');
 
-    const express=require('express');
-    const app=express();
-    const crypto=require('crypto');
-    
-    
-    
-    
-    
-    
-    //Basic routing
-    app.get('/', function(req, res){
-        
-        //Using pbkdf2 of the crypto module to benchmark performance against blocking code
-        crypto.pbkdf2('a', 'b', 100000, 512, 'sha512', ()=>{
-            
-            res.send('Hello world');
 
-        });
+    worker.on('message', function(counter){
+        console.log(counter);
+        res.send(''+counter);
+    }); 
 
-    });
-    
-    
-    app.get('/fast', function(req, res){
-        res.send('Hello world, but fast');
-    })
-    
-    
-    app.listen(3000);
-    
-}
+    worker.postMessage('start');
+
+});
+
+
+app.get('/fast', function(req, res){
+    res.send('Hello world, but fast');
+})
+
+
+app.listen(3000);
+
